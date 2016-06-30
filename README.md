@@ -1,0 +1,1 @@
+# mysql-ha-pacemaker-semisync
