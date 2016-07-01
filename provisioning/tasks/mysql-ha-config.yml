@@ -1,0 +1,124 @@
+# Sets some extra options on mysql replication
+
+# We need to enable binary logging only after adding the user, due to http://bugs.mysql.com/bug.php?id=72281.
+- name: Disable Mysql Binary logging
+  ini_file: dest=/etc/my.cnf
+            section=mysqld
+            option=log_bin
+            state=absent
+
+- name: Disable Mysql GTID mode as it can only be used with bin logging
+  ini_file: dest=/etc/my.cnf
+            section=mysqld
+            option=gtid-mode
+            value=OFF
+
+# This will install the database as well if it doesn't exist. We want to start it, but not enable it, because it's the
+# cluster's job to enable it as appropriate.
+- name: (Re)start the MySQL service
+  service: name=mysqld state=restarted enabled=false
+
+# Pacemaker uses the replication user account on all the hosts to manage the replication.
+# In other words, the replication user must be created on ALL MySQL servers (not just master). WITHOUT binary logging.
+- name: Adding mysql replication user
+  mysql_user:
+    login_host: '127.0.0.1'
+    login_port: 3306
+    login_user: root
+    login_password: "{{mysql_root_password}}"
+    name: "{{mysql_replication_user.name}}"
+    password: "{{mysql_replication_user.password}}"
+    host: "%"
+    priv: "{{mysql_replication_user.priv}}"
+    state: present
+
+# Install the semisynchronous plugins
+- name: Get a list of the mysql plugins that are installed
+  command: >
+    mysql -e 'SHOW PLUGINS;'
+  register: mysql_plugins
+
+- name: Install the semisynchronous master plugin
+  command: mysql -e "INSTALL PLUGIN rpl_semi_sync_master SONAME 'semisync_master.so';"
+  when: mysql_plugins.stdout.find('rpl_semi_sync_master') == -1
+
+- name: Install the semisynchronous slave plugin
+  command: mysql -e "INSTALL PLUGIN rpl_semi_sync_slave SONAME 'semisync_slave.so';"
+  when: mysql_plugins.stdout.find('rpl_semi_sync_slave') == -1
+
+# We need to enable binary logging only after adding the user, due to http://bugs.mysql.com/bug.php?id=72281.
+- name: Enable Mysql Binary logging
+  ini_file: dest=/etc/my.cnf
+            section=mysqld
+            option=log_bin
+            value=mysql-bin
+
+- name: Set Mysql Binary logging format
+  ini_file: dest=/etc/my.cnf
+            section=mysqld
+            option=binlog_format
+            value=ROW
+
+- name: Enable Mysql GTID mode
+  ini_file: dest=/etc/my.cnf
+            section=mysqld
+            option=gtid-mode
+            value=ON
+
+- name: Enforce Mysql GTID consistency
+  ini_file: dest=/etc/my.cnf
+            section=mysqld
+            option=enforce-gtid-consistency
+            value=true
+
+- name: Log Mysql slave updates
+  ini_file: dest=/etc/my.cnf
+            section=mysqld
+            option=log_slave_updates
+            value=true
+
+- name: Skip starting Mysql slaves
+  ini_file: dest=/etc/my.cnf
+            section=mysqld
+            option=skip-slave-start
+            value=true
+
+- name: Write master connection info to tables, not files
+  ini_file: dest=/etc/my.cnf
+            section=mysqld
+            option=master-info-repository
+            value=TABLE
+
+- name: Write relay log info to tables, not files
+  ini_file: dest=/etc/my.cnf
+            section=mysqld
+            option=relay-log-info-repository
+            value=TABLE
+
+- name: Setup relay log binary
+  ini_file: dest=/etc/my.cnf
+            section=mysqld
+            option=relay-log
+            value=mysqld-relay-bin
+
+# Configure the semi-sync replication settings.
+- name: Enable the semisync master plugin
+  ini_file: dest=/etc/my.cnf
+            section=mysqld
+            option=rpl_semi_sync_master_enabled
+            value=true
+
+- name: Enable the semisync slave plugin
+  ini_file: dest=/etc/my.cnf
+            section=mysqld
+            option=rpl_semi_sync_slave_enabled
+            value=true
+
+- name: Set the semisync master timeout
+  ini_file: dest=/etc/my.cnf
+            section=mysqld
+            option=rpl_semi_sync_master_timeout
+            value=1000
+
+- name: Restart the MySQL service
+  service: name=mysqld state=restarted

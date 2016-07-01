@@ -1,0 +1,3 @@
+- include: common.yml
+- include: epel-repository.yml
+- include: el-repository.yml

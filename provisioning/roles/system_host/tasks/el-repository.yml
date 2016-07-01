@@ -1,0 +1,2 @@
+- name: Installing EL repository.
+  yum: name=http://www.elrepo.org/elrepo-release-6-6.el6.elrepo.noarch.rpm state=present

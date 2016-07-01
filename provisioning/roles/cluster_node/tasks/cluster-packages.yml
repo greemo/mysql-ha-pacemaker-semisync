@@ -1,0 +1,28 @@
+- name: Install ccs
+  yum: name=ccs state=latest
+
+- name: Install pcs
+  yum: name=pcs state=latest
+
+- name: Install cman
+  yum: name=cman state=latest
+
+- name: Install resource-agents
+  yum: name=resource-agents state=latest
+
+- name: Install Pacemaker
+  yum: name=pacemaker state=latest
+
+- name: Install a working mysql resource as the one from the repo is dodgy
+  get_url:
+    url: https://github.com/ClusterLabs/resource-agents/raw/98e235caa31c7cc73a834d8046e6f2ec2d04b832/heartbeat/mysql
+    dest: /usr/lib/ocf/resource.d/heartbeat/mysql
+    checksum: md5:96ff5bc709f64196adfdadd7f8d3fa3e
+    mode: 0555
+
+- name: Install a working mysql-common resource as the one from the repo is dodgy
+  get_url:
+    url: https://github.com/ClusterLabs/resource-agents/raw/98e235caa31c7cc73a834d8046e6f2ec2d04b832/heartbeat/mysql-common.sh
+    dest: /usr/lib/ocf/lib/heartbeat/mysql-common.sh
+    checksum: md5:ad3db5cb626ee4d040e19a1d32775a57
+    mode: 0444

@@ -1,0 +1,10 @@
+- name: Install temporary pacemaker config
+  template: src={{pacemaker_config_template}} dest=/tmp/cib.xml
+
+- name: Set up pacemaker
+  command: pcs cluster cib-push /tmp/cib.xml --config
+  register: pcs_status
+  until: pcs_status.rc == 0
+  retries: 5
+  delay: 5
+

@@ -1,0 +1,13 @@
+mysql_root_password: s@cure
+mysql_root_password_update: yes
+mysql_enabled_on_startup: no
+mysql_max_binlog_size: "100M"
+mysql_expire_logs_days: "10"
+# We give them these permissions because the pacemaker mysql controller needs them.
+# The host must be '%' due to the pacemaker mysql script.
+mysql_replication_user:
+  name: "replication_user"
+  password: "v_s@cure"
+  host: "%"
+  priv: "*.*:SELECT,REPLICATION CLIENT,REPLICATION SLAVE,PROCESS,SUPER,RELOAD"
+mysql_replication_master: 'node1'

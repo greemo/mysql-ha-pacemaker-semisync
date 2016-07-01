@@ -1,0 +1,2 @@
+- name: Install the ccs config file
+  copy: src={{ccs_config_file}} dest=/etc/cluster/cluster.conf
