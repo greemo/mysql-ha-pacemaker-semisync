@@ -2,4 +2,3 @@
 - include: cluster-config.yml
 - include: cluster-services.yml
 - include: cluster-initialise.yml
-  when: cluster_primary is defined and cluster_primary

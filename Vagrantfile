@@ -1,26 +1,19 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-group_vars = {
-  'cluster_nodes' => {
-    "ccs_config_file" => "files/etc/cluster/cluster.conf",
-  },
-}
 
 nodes = {
   'node1' => {
     'ip' => '192.168.70.101',
-    'groups' => ['cluster_nodes', 'mysql_nodes'],
+    'groups' => ['mysql_nodes', 'cluster_nodes'],
     'host_vars' => {
-      "cluster_primary" => true,
       "mysql_server_id" => "1",
       "mysql_replication_role" => 'master',
-      "pacemaker_config_template" => 'templates/pacemaker/cib.xml.j2'
     },
   },
   'node2' => {
     'ip' => '192.168.70.102',
-    'groups' => ['cluster_nodes', 'mysql_nodes'],
+    'groups' => ['mysql_nodes', 'cluster_nodes'],
     'host_vars' => {
       "mysql_server_id" => "2",
       "mysql_replication_role" => 'slave'

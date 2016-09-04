@@ -72,7 +72,7 @@
       <rsc_colocation id="c_ip_on_mysql_master" score="INFINITY" rsc="p_ip_mysql" with-rsc="ms_mysql" with-rsc-role="Master"/>
       <rsc_location id="l_mysql_master_prefer_node1" rsc="ms_mysql" role="Master" node="node1" score="50"/>
       <rsc_location id="l_mysql_master_failover_node2" rsc="ms_mysql" role="Master" node="node2" score="25"/>
-      <!-- Fab 3 is a standby, quorum-only node, so don't allow any of the services to run there. -->
+      <!-- Node 3 is a standby, quorum-only node, so don't allow any of the services to run there. -->
       <rsc_location id="node3-quorum-only" rsc="p_mysql" node="node3" score="-INFINITY"/>
     </constraints>
 

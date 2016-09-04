@@ -1,1 +1,10 @@
-ccs_config_file: files/etc/cluster/cluster.conf
+cman_config_template: templates/etc/cluster/cluster.conf
+corosync_key: /tmp/cluster_setup/corosync/authkey
+pacemaker_config_template: templates/pacemaker/cib.xml.j2
+
+# Required for the pacemaker template.
+mysql_replication_user:
+  name: "replication_user"
+  password: "v_s@cure"
+  host: "%"
+  priv: "*.*:SELECT,REPLICATION CLIENT,REPLICATION SLAVE,PROCESS,SUPER,RELOAD"

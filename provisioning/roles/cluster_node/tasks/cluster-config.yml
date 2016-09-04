@@ -1,2 +1,9 @@
-- name: Install the ccs config file
-  copy: src={{ccs_config_file}} dest=/etc/cluster/cluster.conf
+- name: Install the cman config file
+  template:
+    src: "{{cman_config_template}}"
+    dest: /etc/cluster/cluster.conf
+
+- name: Install the Corosync key
+  copy:
+    src: "{{corosync_key}}"
+    dest: /etc/corosync/authkey

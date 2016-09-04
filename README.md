@@ -2,6 +2,8 @@
 
 This is a vagrant deployable mysql semisynchronous HA setup with pacemaker as the cluster manager.
 
+It uses udp unicast and corosync encryption as default, but can be configured however you want. 
+
 Read the provisioning/README.md as well.
 
 To run:
