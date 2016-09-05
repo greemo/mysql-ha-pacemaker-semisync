@@ -1,6 +1,2 @@
-- hosts: cluster_nodes
-  tasks:
-    - include: tasks/reset-hosts-file.yml
-
 - include: mysql-nodes.yml
 - include: cluster-nodes.yml

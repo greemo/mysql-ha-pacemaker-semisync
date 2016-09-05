@@ -1,0 +1,90 @@
+<cib crm_feature_set="3.0.9" validate-with="pacemaker-2.0" epoch="21" num_updates="0" admin_epoch="0" cib-last-written="Tue Jun 07 04:54:08 2016" have-quorum="1" dc-uuid="node1">
+  <configuration>
+
+    <crm_config>
+      <cluster_property_set id="cib-bootstrap-options">
+        <nvpair id="cib-bootstrap-options-dc-version" name="dc-version" value="1.1.11-97629de"/>
+        <nvpair id="cib-bootstrap-options-cluster-infrastructure" name="cluster-infrastructure" value="classic openais (with plugin)"/>
+        <nvpair name="no-quorum-policy" value="stop" id="cib-bootstrap-options-no-quorum-policy"/>
+        <nvpair name="stonith-enabled" value="false" id="cib-bootstrap-options-stonith-enabled"/>
+      </cluster_property_set>
+    </crm_config>
+
+    <nodes>
+      <!-- All the resources will run on all the nodes specified below unless configured otherwise.-->
+      <node id="node1" uname="node1"/>
+      <node id="node2" uname="node2"/>
+      <!-- Node 3 is a standby, quorum-only node -->
+      <node id="node3" uname="node3">
+        <instance_attributes id="nodes-node3">
+          <nvpair id="nodes-node3-standby" name="standby" value="on"/>
+        </instance_attributes>
+      </node>
+      <node id="node4" uname="node4"/>
+    </nodes>
+
+    <resources>
+
+      <primitive id="p_ip_mysql" class="ocf" provider="heartbeat" type="IPaddr2">
+        <instance_attributes id="p_ip_mysql-instance_attributes">
+          <nvpair name="ip" value="192.168.70.200" id="p_ip_mysql-instance_attributes-ip"/>
+          <nvpair name="cidr_netmask" value="24" id="p_ip_mysql-instance_attributes-cidr_netmask"/>
+          <nvpair name="nic" value="eth1" id="p_ip_mysql-instance_attributes-nic"/>
+        </instance_attributes>
+      </primitive>
+
+      <master id="ms_mysql">
+        <meta_attributes id="ms_mysql-meta_attributes">
+          <nvpair name="master-max" value="1" id="ms_mysql-meta_attributes-master-max"/>
+          <nvpair name="master-node-max" value="1" id="ms_mysql-meta_attributes-master-node-max"/>
+          <nvpair name="clone-max" value="3" id="ms_mysql-meta_attributes-clone-max"/>
+          <nvpair name="clone-node-max" value="1" id="ms_mysql-meta_attributes-clone-node-max"/>
+          <nvpair name="notify" value="true" id="ms_mysql-meta_attributes-notify"/>
+          <nvpair name="interleave" value="true" id="ms_mysql-meta_attributes-interleave"/>
+          <nvpair name="target-role" value="Master" id="ms_mysql-meta_attributes-target-role"/>
+        </meta_attributes>
+        <primitive id="p_mysql" class="ocf" provider="heartbeat" type="mysql">
+          <instance_attributes id="p_mysql-instance_attributes">
+            <nvpair name="binary" value="/usr/sbin/mysqld" id="p_mysql-instance_attributes-binary"/>
+            <nvpair name="client_binary" value="/usr/bin/mysql" id="p_mysql-instance_attributes-client_binary"/>
+            <nvpair name="config" value="/etc/my.cnf" id="p_mysql-instance_attributes-config"/>
+            <nvpair name="datadir" value="/var/lib/mysql" id="p_mysql-instance_attributes-datadir"/>
+            <nvpair name="pid" value="/var/run/mysqld/mysqld.pid" id="p_mysql-instance_attributes-pid"/>
+            <nvpair name="socket" value="/var/lib/mysql/mysql.sock" id="p_mysql-instance_attributes-socket"/>
+            <nvpair name="user" value="mysql" id="p_mysql-instance_attributes-user"/>
+            <nvpair name="group" value="mysql" id="p_mysql-instance_attributes-group"/>
+            <nvpair name="test_user" value="{{mysql_replication_user.name}}" id="p_mysql-instance_attributes-test_user"/>
+            <nvpair name="test_passwd" value="{{mysql_replication_user.password}}" id="p_mysql-instance_attributes-test_passwd"/>
+            <nvpair name="replication_user" value="{{mysql_replication_user.name}}" id="p_mysql-instance_attributes-replication_user"/>
+            <nvpair name="replication_passwd" value="{{mysql_replication_user.password}}" id="p_mysql-instance_attributes-replication_passwd"/>
+            <nvpair name="replication_port" value="3306" id="p_mysql-instance_attributes-replication_port"/>
+            <nvpair name="max_slave_lag" value="120" id="p_mysql-instance_attributes-max_slave_lag"/>
+          </instance_attributes>
+          <operations>
+            <op name="monitor" role="Master" interval="10s" timeout="30s" id="p_mysql-monitor-master-10s"/>
+            <op name="monitor" role="Slave" interval="20s" timeout="30s" id="p_mysql-monitor-slave-20s"/>
+          </operations>
+        </primitive>
+      </master>
+    </resources>
+
+    <constraints>
+      <rsc_colocation id="c_ip_on_mysql_master" score="INFINITY" rsc="p_ip_mysql" with-rsc="ms_mysql" with-rsc-role="Master"/>
+      <rsc_location id="l_mysql_master_prefer_node1" rsc="ms_mysql" role="Master" node="node1" score="50"/>
+      <rsc_location id="l_mysql_master_failover_node2" rsc="ms_mysql" role="Master" node="node2" score="25"/>
+      <!-- Node 3 is a standby, quorum-only node, so don't allow any of the services to run there. -->
+      <rsc_location id="node3-quorum-only" rsc="p_mysql" node="node3" score="-INFINITY"/>
+    </constraints>
+
+    <!--
+      If we fail-over, we don't want to revert back until we figured out why the problem happened.
+      To prevent this happening, we set the stickiness higher than the top location score.
+    -->
+    <rsc_defaults>
+      <meta_attributes id="rsc-options">
+        <nvpair name="resource-stickiness" value="100" id="rsc-options-resource-stickiness"/>
+      </meta_attributes>
+    </rsc_defaults>
+
+  </configuration>
+</cib>

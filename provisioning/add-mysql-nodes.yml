@@ -1,5 +1,5 @@
 ---
-- hosts: mysql_nodes
+- hosts: all
   pre_tasks:
     - name: Installing MySQL repository.
       yum: name=http://repo.mysql.com/mysql-community-release-el6-5.noarch.rpm state=present
@@ -9,4 +9,9 @@
         mysql_enabled_on_startup: no,
         mysql_max_binlog_size: "100M",
         mysql_expire_logs_days: "10" }
-    - mysql_semisync
+    - { role: mysql_semisync,
+        mysql_replication_user: {
+          name: "{{replication_user}}",
+          password: "{{replication_password}}",
+          host: "%",
+          priv: "*.*:SELECT,REPLICATION CLIENT,REPLICATION SLAVE,PROCESS,SUPER,RELOAD" }}

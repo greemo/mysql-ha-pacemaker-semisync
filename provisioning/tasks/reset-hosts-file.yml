@@ -1,2 +1,0 @@
-- name: Install default hosts file
-  copy: src=etc/hosts dest=/etc/hosts

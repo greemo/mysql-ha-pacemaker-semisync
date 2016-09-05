@@ -1,0 +1,8 @@
+- hosts: all
+  roles:
+    - { role: cluster_node,
+        mysql_replication_user: {
+          name: "{{replication_user}}",
+          password: "{{replication_password}}",
+          host: "%",
+          priv: "*.*:SELECT,REPLICATION CLIENT,REPLICATION SLAVE,PROCESS,SUPER,RELOAD" }}

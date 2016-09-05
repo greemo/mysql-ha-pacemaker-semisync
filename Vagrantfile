@@ -22,6 +22,10 @@ nodes = {
   'node3' => {
     'ip' => '192.168.70.103',
     'groups' => ['cluster_nodes'],
+  },
+  'node4' => {
+    'ip' => '192.168.70.104',
+    'groups' => [],
   }
 }
 
@@ -31,7 +35,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = 'minimal/centos6'
   config.vm.boot_timeout = 600
 
-  config.hostmanager.enabled = true
+  config.hostmanager.enabled = false
 
   config.vm.provider :virtualbox do |vb|
     vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
@@ -46,6 +50,36 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   }
 
+  # Reset the hosts files for the cluster nodes.
+  config.vm.provision :ansible do |ansible|
+    ansible.verbose = 'vv'
+    ansible.sudo = true
+    ansible.groups = Hash.new
+    ansible.host_vars = Hash.new
+    nodes.each_pair { |node, node_config|
+      node_config['groups'].each { |group|
+        if ansible.groups.include?(group)
+          ansible.groups[group].push(node)
+        else
+          ansible.groups[group] = [node]
+        end
+      }
+      ansible.host_vars[node] = node_config['host_vars']
+    }
+    ansible.extra_vars = {
+        ansible_ssh_user: 'vagrant',
+    }
+    # Disable default limit (required with Vagrant 1.5+)
+    ansible.limit = 'all'
+
+    ansible.playbook = "provisioning/reset-hosts-file.yml"
+    ansible.host_key_checking = false
+  end
+
+  # Set up the host files
+  config.vm.provision :hostmanager
+
+  # Provision the software
   config.vm.provision :ansible do |ansible|
     ansible.verbose = 'vv'
     ansible.sudo = true

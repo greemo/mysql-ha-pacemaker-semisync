@@ -1,0 +1,14 @@
+- hosts: all
+  tasks:
+    - name: Install the new config
+      copy:
+        src: "{{cman_config}}"
+        dest: "/etc/cluster/cluster.conf"
+        backup: yes
+
+    - name: Validate the new config
+      command: ccs_config_validate
+
+    - name: Activate the new config
+      command: cman_tool version -r -S
+      run_once: True
