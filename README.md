@@ -60,7 +60,12 @@ Use this to try and cleanup any resource problems automatically
   ```
   vagrant up node2 --no-provision
   ```
-- Install your ssh key on the new machine so you can run ansible manually
+- Install your ssh key on the new machine so you can run ansible manually, and remove the mapping from localaddress to node name
+  ```
+  vagrant ssh node2
+  vim ~/.ssh/authorized_keys
+  sudo vim /etc/hosts 
+  ```
 - Set up the /etc/hosts file on all the machines so they know the new name
   ```
   vagrant provision --provision-with hostmanager
