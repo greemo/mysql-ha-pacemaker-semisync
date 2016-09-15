@@ -26,3 +26,8 @@
     dest: /usr/lib/ocf/lib/heartbeat/mysql-common.sh
     checksum: md5:ad3db5cb626ee4d040e19a1d32775a57
     mode: 0444
+
+
+# The below is if you want to use percona geo cluster. Not yet...
+# url: https://github.com/percona/percona-pacemaker-agents/raw/e668ff47acda1622e4c3412ac800b151584facd9/agents/mysql_prm_gtid
+# checksum: md5:23dad4deaa9655f2790664eca8985bc9

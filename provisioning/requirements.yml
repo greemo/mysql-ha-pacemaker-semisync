@@ -1,1 +1,2 @@
-- src: geerlingguy.mysql
+- src: git+https://github.com/geerlingguy/ansible-role-mysql
+  version: v2.3.2
